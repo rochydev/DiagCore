@@ -1,0 +1,150 @@
+<UserControl x:Class="DiagCore.App.Views.ReportsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:DiagCore.App.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:DiagCore.App.ViewModels"
+             d:DataContext="{d:DesignInstance Type=vm:ReportsViewModel}"
+             mc:Ignorable="d">
+
+    <UserControl.RenderTransform>
+        <TranslateTransform X="0" />
+    </UserControl.RenderTransform>
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.2" />
+                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                     From="8"
+                                     To="0"
+                                     Duration="0:0:0.2">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </UserControl.Triggers>
+
+    <Grid Background="{DynamicResource BgPrimaryBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="24,20,24,4">
+            <TextBlock FontFamily="{StaticResource DisplayFontFamily}"
+                       FontSize="24"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       Text="Informes" />
+            <TextBlock Margin="0,2,0,0"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       FontSize="13"
+                       Text="Exportar el diagnóstico completo a PDF, TXT o JSON." />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" Padding="24,8,24,24" VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!--  Left: section toggles  -->
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                            <ui:SymbolIcon VerticalAlignment="Center"
+                                           FontSize="18"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           Symbol="DocumentText24" />
+                            <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Secciones a incluir" />
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding Sections}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:ReportSection}">
+                                    <CheckBox Margin="0,4"
+                                              Content="{Binding Label}"
+                                              FontFamily="{StaticResource UiFontFamily}"
+                                              FontSize="13"
+                                              Foreground="{DynamicResource TextPrimaryBrush}"
+                                              IsChecked="{Binding Include, Mode=TwoWay}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!--  Right: export panel (Fase 4 stub)  -->
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                            <ui:SymbolIcon VerticalAlignment="Center"
+                                           FontSize="18"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           Symbol="ArrowExport24" />
+                            <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Exportar" />
+                        </StackPanel>
+                        <Border Margin="0,0,0,12"
+                                Padding="12,10"
+                                Background="{DynamicResource BgTertiaryBrush}"
+                                BorderBrush="{DynamicResource InfoBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Margin="0,2,8,0"
+                                               VerticalAlignment="Top"
+                                               FontSize="16"
+                                               Foreground="{DynamicResource InfoBrush}"
+                                               Symbol="Info24" />
+                                <StackPanel>
+                                    <TextBlock FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               FontSize="13"
+                                               Text="Disponible en la próxima versión" />
+                                    <TextBlock Margin="0,4,0,0"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               FontSize="12"
+                                               TextWrapping="Wrap"
+                                               Text="La exportación a PDF, el histórico local (SQLite) y la comparación entre informes son parte de la Fase 4. Ya tienes seleccionadas las secciones por defecto." />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        <Button HorizontalAlignment="Stretch"
+                                IsEnabled="False"
+                                Style="{StaticResource PrimaryButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon FontSize="14" VerticalAlignment="Center" Symbol="DocumentPdf24" />
+                                <TextBlock Margin="8,0,0,0" Text="Generar PDF (próximamente)" />
+                            </StackPanel>
+                        </Button>
+                        <Button Margin="0,8,0,0"
+                                HorizontalAlignment="Stretch"
+                                IsEnabled="False"
+                                Style="{StaticResource ButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon FontSize="14" VerticalAlignment="Center" Symbol="DocumentText24" />
+                                <TextBlock Margin="8,0,0,0" Text="Exportar a TXT (próximamente)" />
+                            </StackPanel>
+                        </Button>
+                        <Button Margin="0,8,0,0"
+                                HorizontalAlignment="Stretch"
+                                IsEnabled="False"
+                                Style="{StaticResource ButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon FontSize="14" VerticalAlignment="Center" Symbol="Code24" />
+                                <TextBlock Margin="8,0,0,0" Text="Exportar a JSON (próximamente)" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

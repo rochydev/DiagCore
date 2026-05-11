@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DiagCore.App/DiagCore.App.csproj" />
+    <Project Path="src/DiagCore.Core/DiagCore.Core.csproj" />
+    <Project Path="src/DiagCore.Tests/DiagCore.Tests.csproj" />
+  </Folder>
+</Solution>

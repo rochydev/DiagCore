@@ -1,0 +1,70 @@
+<UserControl x:Class="DiagCore.App.Controls.StatTile"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             x:Name="Root"
+             d:DesignHeight="140"
+             d:DesignWidth="260"
+             mc:Ignorable="d">
+
+    <Border Style="{StaticResource CardStyle}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!--  Header: icon + caption  -->
+            <StackPanel Grid.Row="0"
+                        Orientation="Horizontal">
+                <ui:SymbolIcon FontSize="16"
+                               VerticalAlignment="Center"
+                               Foreground="{Binding AccentBrush, ElementName=Root}"
+                               Symbol="{Binding Icon, ElementName=Root}" />
+                <TextBlock Margin="8,0,0,0"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           FontFamily="{StaticResource UiFontFamily}"
+                           FontSize="13"
+                           FontWeight="Medium"
+                           Text="{Binding Caption, ElementName=Root}" />
+            </StackPanel>
+
+            <!--  Big value  -->
+            <TextBlock Grid.Row="1"
+                       Margin="0,8,0,0"
+                       FontFamily="{StaticResource DisplayFontFamily}"
+                       FontSize="32"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       Text="{Binding Value, ElementName=Root}" />
+
+            <!--  Sub caption  -->
+            <TextBlock Grid.Row="2"
+                       Margin="0,2,0,0"
+                       Foreground="{DynamicResource TextMutedBrush}"
+                       FontFamily="{StaticResource UiFontFamily}"
+                       FontSize="12"
+                       Text="{Binding SubCaption, ElementName=Root}"
+                       Visibility="{Binding SubCaption, ElementName=Root, Converter={StaticResource NullToVisibility}}" />
+
+            <!--  Optional percentage bar  -->
+            <Grid Grid.Row="3"
+                  Margin="0,14,0,0"
+                  Visibility="{Binding ShowBar, ElementName=Root, Converter={StaticResource BoolToVisibility}}">
+                <Border Style="{StaticResource UsageBarHostStyle}" />
+                <Border x:Name="BarFill"
+                        Height="8"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Background="{Binding AccentBrush, ElementName=Root}"
+                        CornerRadius="4"
+                        Width="{Binding BarWidth, ElementName=Root}" />
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

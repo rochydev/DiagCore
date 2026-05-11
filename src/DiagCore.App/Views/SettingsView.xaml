@@ -1,0 +1,193 @@
+<UserControl x:Class="DiagCore.App.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:DiagCore.App.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:DiagCore.App.ViewModels"
+             d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}"
+             mc:Ignorable="d">
+
+    <UserControl.RenderTransform>
+        <TranslateTransform X="0" />
+    </UserControl.RenderTransform>
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.2" />
+                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                     From="8"
+                                     To="0"
+                                     Duration="0:0:0.2">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </UserControl.Triggers>
+
+    <Grid Background="{DynamicResource BgPrimaryBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="24,20,24,4">
+            <TextBlock FontFamily="{StaticResource DisplayFontFamily}"
+                       FontSize="24"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       Text="Configuración" />
+            <TextBlock Margin="0,2,0,0"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       FontSize="13"
+                       Text="Preferencias, privacidad e información del producto." />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" Padding="24,8,24,24" VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!--  Left: about + version  -->
+                <StackPanel Grid.Column="0">
+
+                    <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Image Grid.Column="0"
+                                   Width="64"
+                                   Height="64"
+                                   VerticalAlignment="Top"
+                                   Source="pack://application:,,,/Assets/logo.png" />
+                            <StackPanel Grid.Column="1" Margin="16,0,0,0">
+                                <TextBlock FontFamily="{StaticResource DisplayFontFamily}"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           Text="{Binding AppName}" />
+                                <TextBlock Margin="0,2,0,0"
+                                           FontFamily="{StaticResource MonoFontFamily}"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           Text="{Binding AppVersion}" />
+                                <TextBlock Margin="0,8,0,0"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"
+                                           Text="Herramienta de diagnóstico técnico para Windows. Pensada para administradores, IT helpdesk y MSPs." />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                <ui:SymbolIcon VerticalAlignment="Center"
+                                               FontSize="18"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               Symbol="Info24" />
+                                <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Sobre el producto" />
+                            </StackPanel>
+                            <c:KeyValueRow Label="Autor" Value="{Binding AuthorFullName}" />
+                            <c:KeyValueRow Label="Handle" Value="{Binding AuthorHandle}" ValueFontFamily="{StaticResource MonoFontFamily}" />
+                            <c:KeyValueRow Label="Licencia" Value="{Binding License}" />
+                            <c:KeyValueRow Label="Repositorio" Value="{Binding Repository}" ValueForeground="{DynamicResource AccentBrush}" />
+                            <c:KeyValueRow Label="Versión" Value="{Binding AppVersion}" ValueFontFamily="{StaticResource MonoFontFamily}" />
+                            <c:KeyValueRow Label="Framework" Value="{Binding AppFramework}" ValueFontFamily="{StaticResource MonoFontFamily}" />
+                            <Button Margin="0,16,0,0"
+                                    HorizontalAlignment="Left"
+                                    Command="{Binding ShowWelcomeCommand}"
+                                    Style="{StaticResource ButtonStyle}">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon FontSize="14" VerticalAlignment="Center" Symbol="History24" />
+                                    <TextBlock Margin="8,0,0,0" Text="Mostrar bienvenida" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!--  Right: preferences + privacy  -->
+                <StackPanel Grid.Column="2">
+
+                    <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                <ui:SymbolIcon VerticalAlignment="Center"
+                                               FontSize="18"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               Symbol="PaintBrush24" />
+                                <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Apariencia e idioma" />
+                            </StackPanel>
+                            <c:KeyValueRow Label="Tema" Value="{Binding CurrentTheme}" />
+                            <c:KeyValueRow Label="Idioma" Value="{Binding CurrentLanguage}" />
+                            <TextBlock Margin="0,12,0,0"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       FontSize="11"
+                                       TextWrapping="Wrap"
+                                       Text="Tema claro e inglés llegarán en v1.1. La infraestructura ya está preparada para activarlos sin tocar XAML." />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                <ui:SymbolIcon VerticalAlignment="Center"
+                                               FontSize="18"
+                                               Foreground="{DynamicResource OkBrush}"
+                                               Symbol="LockClosed24" />
+                                <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Privacidad" />
+                            </StackPanel>
+                            <StackPanel>
+                                <StackPanel Margin="0,4" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Top"
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource OkBrush}"
+                                                   Symbol="Checkmark24" />
+                                    <TextBlock Margin="8,0,0,0"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               FontSize="12"
+                                               TextWrapping="Wrap"
+                                               Text="Cero telemetría: el binario no envía nada a ningún servidor del autor." />
+                                </StackPanel>
+                                <StackPanel Margin="0,4" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Top"
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource OkBrush}"
+                                                   Symbol="Checkmark24" />
+                                    <TextBlock Margin="8,0,0,0"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               FontSize="12"
+                                               TextWrapping="Wrap"
+                                               Text="Los informes y el histórico se quedan en tu equipo." />
+                                </StackPanel>
+                                <StackPanel Margin="0,4" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Top"
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource OkBrush}"
+                                                   Symbol="Checkmark24" />
+                                    <TextBlock Margin="8,0,0,0"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               FontSize="12"
+                                               TextWrapping="Wrap"
+                                               Text="Única llamada saliente: api.ipify.org, y solo si pulsas 'Consultar IP pública' manualmente." />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

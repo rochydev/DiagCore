@@ -1,0 +1,311 @@
+<UserControl x:Class="DiagCore.App.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:DiagCore.App.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:DiagCore.Core.Models;assembly=DiagCore.Core"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:DiagCore.App.ViewModels"
+             d:DataContext="{d:DesignInstance Type=vm:HomeViewModel}"
+             mc:Ignorable="d">
+
+    <UserControl.RenderTransform>
+        <TranslateTransform X="0" />
+    </UserControl.RenderTransform>
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.2" />
+                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                     From="8"
+                                     To="0"
+                                     Duration="0:0:0.2">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </UserControl.Triggers>
+
+    <Grid Background="{DynamicResource BgPrimaryBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="24,20,24,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock FontFamily="{StaticResource DisplayFontFamily}"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           Text="{Binding OperatingSystem.ComputerName, FallbackValue='Inicio'}" />
+                <TextBlock Margin="0,2,0,0"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           FontSize="13"
+                           Text="{Binding MachineSubtitle}" />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Command="{Binding RefreshCommand}"
+                    Style="{StaticResource PrimaryButtonStyle}">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon FontSize="14" VerticalAlignment="Center" Symbol="ArrowSync24" />
+                    <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" Text="Actualizar" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <ui:ProgressRing Grid.Row="1"
+                         Width="36"
+                         Height="36"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Top"
+                         Margin="0,40,0,0"
+                         IsIndeterminate="True"
+                         Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
+
+        <ScrollViewer Grid.Row="1"
+                      Padding="24,8,24,24"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto"
+                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}">
+            <StackPanel>
+
+                <!--  Health score hero card  -->
+                <Border Margin="0,0,0,16" Style="{StaticResource CardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0"
+                                Width="80"
+                                Height="80"
+                                Background="{DynamicResource BgTertiaryBrush}"
+                                CornerRadius="12">
+                            <TextBlock HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       FontFamily="{StaticResource DisplayFontFamily}"
+                                       FontSize="36"
+                                       FontWeight="Bold"
+                                       Foreground="{Binding HealthScore, Converter={StaticResource PercentToBrush}}"
+                                       Text="{Binding HealthScore}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center">
+                            <TextBlock FontFamily="{StaticResource UiFontFamily}"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Text="SCORE DE SALUD" />
+                            <TextBlock Margin="0,2,0,0"
+                                       FontFamily="{StaticResource DisplayFontFamily}"
+                                       FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Text="{Binding HealthVerdict}" />
+                            <TextBlock Margin="0,4,0,0"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       FontSize="12">
+                                <Run Text="Tiempo encendido: " />
+                                <Run Foreground="{DynamicResource TextSecondaryBrush}" Text="{Binding UptimeDisplay, Mode=OneWay}" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!--  KPI tiles  -->
+                <UniformGrid Margin="0,0,0,16" Columns="4" Rows="1">
+                    <c:StatTile Margin="0,0,4,0"
+                                Caption="CPU"
+                                Icon="DeveloperBoard24"
+                                Percent="{Binding CpuLoadPercent}"
+                                ShowBar="True"
+                                Value="{Binding CpuValueDisplay}" />
+                    <c:StatTile Margin="4,0,4,0"
+                                Caption="Memoria"
+                                Icon="Memory16"
+                                Percent="{Binding MemoryUsedPercent}"
+                                ShowBar="True"
+                                SubCaption="{Binding MemoryCaption}"
+                                Value="{Binding MemoryValueDisplay}" />
+                    <c:StatTile Margin="4,0,4,0"
+                                Caption="Disco sistema"
+                                Icon="Database24"
+                                Percent="{Binding DiskUsedPercent}"
+                                ShowBar="True"
+                                SubCaption="{Binding DiskCaption}"
+                                Value="{Binding DiskValueDisplay}" />
+                    <c:StatTile Margin="4,0,0,0"
+                                Caption="Eventos críticos 24h"
+                                Icon="Warning24"
+                                ShowBar="False"
+                                SubCaption="System + Application"
+                                Value="{Binding CriticalEventsCount}" />
+                </UniformGrid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Top procesos CPU  -->
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                <ui:SymbolIcon VerticalAlignment="Center"
+                                               FontSize="18"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               Symbol="TopSpeed24" />
+                                <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Top 5 procesos · CPU" />
+                            </StackPanel>
+                            <ItemsControl ItemsSource="{Binding TopProcessesByCpu}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type models:ProcessSnapshot}">
+                                        <Grid Margin="0,3">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="60" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0"
+                                                       FontSize="12"
+                                                       FontWeight="Medium"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                                       Text="{Binding Name}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Column="1"
+                                                       Margin="8,0"
+                                                       FontFamily="{StaticResource MonoFontFamily}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextMutedBrush}"
+                                                       Text="{Binding RamMB, StringFormat='{}{0:F0} MB'}" />
+                                            <TextBlock Grid.Column="2"
+                                                       HorizontalAlignment="Right"
+                                                       FontFamily="{StaticResource MonoFontFamily}"
+                                                       FontSize="12"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource AccentBrush}"
+                                                       Text="{Binding CpuSeconds, StringFormat='{}{0:F0} s'}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!--  Top procesos RAM  -->
+                    <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                <ui:SymbolIcon VerticalAlignment="Center"
+                                               FontSize="18"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               Symbol="Memory16" />
+                                <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Top 5 procesos · RAM" />
+                            </StackPanel>
+                            <ItemsControl ItemsSource="{Binding TopProcessesByRam}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type models:ProcessSnapshot}">
+                                        <Grid Margin="0,3">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0"
+                                                       FontSize="12"
+                                                       FontWeight="Medium"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                                       Text="{Binding Name}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Column="1"
+                                                       HorizontalAlignment="Right"
+                                                       FontFamily="{StaticResource MonoFontFamily}"
+                                                       FontSize="12"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource AccentBrush}"
+                                                       Text="{Binding RamMB, StringFormat='{}{0:F0} MB'}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!--  Eventos críticos  -->
+                <Border Margin="0,12,0,0" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                            <ui:SymbolIcon VerticalAlignment="Center"
+                                           FontSize="18"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           Symbol="Warning24" />
+                            <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Eventos críticos · últimas 24h" />
+                        </StackPanel>
+                        <TextBlock Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="12"
+                                   Text="Sin eventos críticos en las últimas 24 horas."
+                                   Visibility="{Binding CriticalEventsCount, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}" />
+                        <ItemsControl ItemsSource="{Binding CriticalEvents}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type models:EventLogEntry}">
+                                    <Border Margin="0,3"
+                                            Padding="10,6"
+                                            Background="{DynamicResource BgTertiaryBrush}"
+                                            CornerRadius="6">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0"
+                                                       VerticalAlignment="Center"
+                                                       FontFamily="{StaticResource MonoFontFamily}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextMutedBrush}"
+                                                       Text="{Binding TimeCreated, StringFormat='{}{0:dd/MM HH:mm}'}" />
+                                            <TextBlock Grid.Column="1"
+                                                       Margin="10,0"
+                                                       VerticalAlignment="Center"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource DangerBrush}"
+                                                       Text="{Binding Level}" />
+                                            <TextBlock Grid.Column="2"
+                                                       VerticalAlignment="Center"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                                       Text="{Binding ProviderName}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Column="3"
+                                                       VerticalAlignment="Center"
+                                                       FontFamily="{StaticResource MonoFontFamily}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Text="{Binding EventId, StringFormat='{}ID {0}'}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

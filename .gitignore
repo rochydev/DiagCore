@@ -1,0 +1,90 @@
+# ---- .NET / Visual Studio ----
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Oo]ut/
+[Pp]ublish/
+[Tt]est[Rr]esults/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.psess
+*.vsp
+*.vspx
+*.sap
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+node_modules/
+
+.vs/
+.vscode/
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+.rider/
+
+# AI assistant workspaces (kept out of the repo - private to each contributor)
+.claude/
+.aider*
+.cursor/
+
+# Rider/ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# JetBrains
+*.userprefs
+
+# Build artifacts
+*.dll
+*.exe
+*.pdb
+*.cache
+*.tlog
+*.lastbuildstate
+*.unsuccessfulbuild
+*.tmp_proj
+*.swp
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Coverage
+coverage/
+*.coverage
+*.coveragexml
+TestResult.xml
+
+# EF Core / SQLite local data (developer scratch dbs)
+*.db
+*.db-shm
+*.db-wal
+
+# Serilog local logs
+serilog-*.txt
+
+# Velopack output
+Releases/
+.velopack/
+
+# OS junk
+[Tt]humbs.db
+.DS_Store
+desktop.ini
+
+# Secrets / env
+*.env
+secrets.json
+appsettings.*.local.json

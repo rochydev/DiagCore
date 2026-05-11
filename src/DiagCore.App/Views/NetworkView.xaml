@@ -1,0 +1,289 @@
+<UserControl x:Class="DiagCore.App.Views.NetworkView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:DiagCore.App.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:DiagCore.Core.Models;assembly=DiagCore.Core"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:DiagCore.App.ViewModels"
+             d:DataContext="{d:DesignInstance Type=vm:NetworkViewModel}"
+             mc:Ignorable="d">
+
+    <UserControl.RenderTransform>
+        <TranslateTransform X="0" />
+    </UserControl.RenderTransform>
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.2" />
+                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                     From="8"
+                                     To="0"
+                                     Duration="0:0:0.2">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </UserControl.Triggers>
+
+    <Grid Background="{DynamicResource BgPrimaryBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="24,20,24,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock FontFamily="{StaticResource DisplayFontFamily}"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           Text="Red" />
+                <TextBlock Margin="0,2,0,0"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           FontSize="13"
+                           Text="Adaptadores, configuración IP, herramientas de diagnóstico." />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Command="{Binding RefreshCommand}"
+                    Style="{StaticResource PrimaryButtonStyle}">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon FontSize="14" VerticalAlignment="Center" Symbol="ArrowSync24" />
+                    <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" Text="Actualizar" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <ui:ProgressRing Grid.Row="1"
+                         Width="36"
+                         Height="36"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Top"
+                         Margin="0,40,0,0"
+                         IsIndeterminate="True"
+                         Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
+
+        <ScrollViewer Grid.Row="1"
+                      Padding="24,8,24,24"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto"
+                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}">
+            <StackPanel>
+
+                <!--  Hero tiles  -->
+                <UniformGrid Margin="0,0,0,16" Columns="3" Rows="1">
+                    <c:StatTile Margin="0,0,6,0"
+                                Caption="IP local principal"
+                                Icon="Wifi124"
+                                ShowBar="False"
+                                SubCaption="{Binding PrimaryAdapterCaption}"
+                                Value="{Binding PrimaryAdapterValueDisplay}" />
+                    <c:StatTile Margin="6,0,6,0"
+                                Caption="Adaptadores conectados"
+                                Icon="PlugConnected24"
+                                ShowBar="False"
+                                SubCaption="{Binding ConnectedAdaptersCaption}"
+                                Value="{Binding ConnectedAdaptersValueDisplay}" />
+                    <c:StatTile Margin="6,0,0,0"
+                                Caption="IP pública"
+                                Icon="Globe24"
+                                ShowBar="False"
+                                SubCaption="solo bajo demanda (api.ipify.org)"
+                                Value="{Binding PublicIpValueDisplay}" />
+                </UniformGrid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Left: Adaptadores  -->
+                    <StackPanel Grid.Column="0">
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="DataUsage24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Adaptadores de red" />
+                                </StackPanel>
+                                <TextBlock Visibility="{Binding AdapterError, Converter={StaticResource NullToVisibility}}"
+                                           Foreground="{DynamicResource DangerBrush}"
+                                           Text="{Binding AdapterError}" />
+                                <ItemsControl ItemsSource="{Binding Adapters}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type models:NetworkAdapterInfo}">
+                                            <Border Margin="0,4"
+                                                    Padding="12,10"
+                                                    Background="{DynamicResource BgTertiaryBrush}"
+                                                    CornerRadius="8">
+                                                <StackPanel>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0">
+                                                            <TextBlock FontSize="13"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                       Text="{Binding Name}" />
+                                                            <TextBlock Margin="0,2,0,0"
+                                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                       FontSize="11"
+                                                                       Text="{Binding Description}"
+                                                                       TextTrimming="CharacterEllipsis" />
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="1"
+                                                                   VerticalAlignment="Top"
+                                                                   FontFamily="{StaticResource UiFontFamily}"
+                                                                   FontSize="11"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource OkBrush}"
+                                                                   Text="{Binding Status}" />
+                                                    </Grid>
+                                                    <StackPanel Margin="0,8,0,0">
+                                                        <c:KeyValueRow Label="Tipo" Value="{Binding InterfaceType}" />
+                                                        <c:KeyValueRow Label="MAC" Value="{Binding MacAddress}" ValueFontFamily="{StaticResource MonoFontFamily}" />
+                                                        <ItemsControl ItemsSource="{Binding IPv4Addresses}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <c:KeyValueRow Label="IPv4" Value="{Binding}" ValueFontFamily="{StaticResource MonoFontFamily}" ValueForeground="{DynamicResource AccentBrush}" />
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                        <ItemsControl ItemsSource="{Binding Gateways}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <c:KeyValueRow Label="Gateway" Value="{Binding}" ValueFontFamily="{StaticResource MonoFontFamily}" />
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!--  Right: Tools  -->
+                    <StackPanel Grid.Column="2">
+
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="Globe24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="IP pública" />
+                                </StackPanel>
+                                <TextBlock Margin="0,0,0,8"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="12"
+                                           Text="Consulta opcional a api.ipify.org. Es la única llamada saliente del programa."
+                                           TextWrapping="Wrap" />
+                                <Button Width="180"
+                                        HorizontalAlignment="Left"
+                                        Command="{Binding LookupPublicIpCommand}"
+                                        IsEnabled="{Binding IsLookingUpPublicIp, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert, Mode=OneWay}"
+                                        Style="{StaticResource PrimaryButtonStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:SymbolIcon FontSize="14" VerticalAlignment="Center" Symbol="GlobeSearch24" />
+                                        <TextBlock Margin="8,0,0,0" Text="Consultar IP pública" />
+                                    </StackPanel>
+                                </Button>
+                                <TextBlock Margin="0,10,0,0"
+                                           FontFamily="{StaticResource MonoFontFamily}"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           Text="{Binding PublicIp}"
+                                           Visibility="{Binding PublicIp, Converter={StaticResource NullToVisibility}}" />
+                                <TextBlock Margin="0,10,0,0"
+                                           Foreground="{DynamicResource DangerBrush}"
+                                           FontSize="12"
+                                           Text="{Binding PublicIpError}"
+                                           Visibility="{Binding PublicIpError, Converter={StaticResource NullToVisibility}}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="Pulse24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Ping" />
+                                </StackPanel>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0"
+                                             Style="{StaticResource TextBoxStyle}"
+                                             Text="{Binding PingHost, UpdateSourceTrigger=PropertyChanged}" />
+                                    <Button Grid.Column="2"
+                                            Command="{Binding PingCommand}"
+                                            IsEnabled="{Binding IsPinging, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert, Mode=OneWay}"
+                                            Style="{StaticResource PrimaryButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <ui:SymbolIcon FontSize="14" VerticalAlignment="Center" Symbol="Send24" />
+                                            <TextBlock Margin="8,0,0,0" Text="Enviar" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                                <TextBlock Foreground="{DynamicResource DangerBrush}"
+                                           FontSize="12"
+                                           Text="{Binding PingError}"
+                                           Visibility="{Binding PingError, Converter={StaticResource NullToVisibility}}"
+                                           TextWrapping="Wrap" />
+                                <StackPanel Visibility="{Binding PingResult, Converter={StaticResource NullToVisibility}}">
+                                    <c:KeyValueRow Label="Enviados / Recibidos">
+                                        <c:KeyValueRow.Value>
+                                            <MultiBinding StringFormat="{}{0} / {1}">
+                                                <Binding Path="PingResult.Sent" />
+                                                <Binding Path="PingResult.Received" />
+                                            </MultiBinding>
+                                        </c:KeyValueRow.Value>
+                                    </c:KeyValueRow>
+                                    <c:KeyValueRow Label="Pérdida" Value="{Binding PingResult.LossPercent, StringFormat='{}{0:F0} %'}" />
+                                    <c:KeyValueRow Label="Latencia min / avg / max">
+                                        <c:KeyValueRow.Value>
+                                            <MultiBinding StringFormat="{}{0} / {1} / {2} ms">
+                                                <Binding Path="PingResult.MinMs" />
+                                                <Binding Path="PingResult.AvgMs" />
+                                                <Binding Path="PingResult.MaxMs" />
+                                            </MultiBinding>
+                                        </c:KeyValueRow.Value>
+                                    </c:KeyValueRow>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -1,0 +1,395 @@
+<UserControl x:Class="DiagCore.App.Views.HardwareView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:DiagCore.App.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:DiagCore.Core.Models;assembly=DiagCore.Core"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:DiagCore.App.ViewModels"
+             d:DataContext="{d:DesignInstance Type=vm:HardwareViewModel}"
+             mc:Ignorable="d">
+
+    <UserControl.RenderTransform>
+        <TranslateTransform X="0" />
+    </UserControl.RenderTransform>
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                     From="0"
+                                     To="1"
+                                     Duration="0:0:0.2" />
+                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                     From="8"
+                                     To="0"
+                                     Duration="0:0:0.2">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </UserControl.Triggers>
+
+    <Grid Background="{DynamicResource BgPrimaryBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  Compact header  -->
+        <Grid Grid.Row="0" Margin="24,20,24,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock FontFamily="{StaticResource DisplayFontFamily}"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           Text="Hardware" />
+                <TextBlock Margin="0,2,0,0"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           FontSize="13"
+                           Text="Sistema, procesador, memoria, gráfica, BIOS y batería." />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Command="{Binding RefreshCommand}"
+                    Style="{StaticResource PrimaryButtonStyle}">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon FontSize="14"
+                                   VerticalAlignment="Center"
+                                   Symbol="ArrowSync24" />
+                    <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" Text="Actualizar" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!--  Loading indicator  -->
+        <ui:ProgressRing Grid.Row="1"
+                         Width="36"
+                         Height="36"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Top"
+                         Margin="0,40,0,0"
+                         IsIndeterminate="True"
+                         Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
+
+        <!--  Body  -->
+        <ScrollViewer Grid.Row="1"
+                      Padding="24,8,24,24"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto"
+                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}">
+            <StackPanel>
+
+                <!--  Hero tiles row  -->
+                <UniformGrid Margin="0,0,0,16" Columns="3" Rows="1">
+                    <c:StatTile Margin="0,0,6,0"
+                                Caption="CPU"
+                                Icon="DeveloperBoard24"
+                                Percent="{Binding CpuLoadPercent}"
+                                ShowBar="True"
+                                SubCaption="{Binding CpuSummary}"
+                                Value="{Binding CpuLoadDisplay}" />
+                    <c:StatTile Margin="6,0,6,0"
+                                Caption="Memoria"
+                                Icon="Memory16"
+                                Percent="{Binding MemoryUsedPercent}"
+                                ShowBar="True"
+                                SubCaption="{Binding MemorySummaryCaption}"
+                                Value="{Binding MemoryValueDisplay}" />
+                    <c:StatTile Margin="6,0,0,0"
+                                Caption="Tiempo encendido"
+                                Icon="Clock24"
+                                ShowBar="False"
+                                SubCaption="{Binding UptimeSubCaption}"
+                                Value="{Binding UptimeDisplay}" />
+                </UniformGrid>
+
+                <!--  Two-column grid of detail cards  -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Left column  -->
+                    <StackPanel Grid.Column="0">
+
+                        <!--  Sistema  -->
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="Laptop24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Sistema" />
+                                </StackPanel>
+                                <TextBlock Visibility="{Binding SystemError, Converter={StaticResource NullToVisibility}}"
+                                           Foreground="{DynamicResource DangerBrush}"
+                                           Text="{Binding SystemError}" />
+                                <StackPanel Visibility="{Binding OperatingSystem, Converter={StaticResource NullToVisibility}}">
+                                    <c:KeyValueRow Label="SO" Value="{Binding OperatingSystem.Caption}" />
+                                    <c:KeyValueRow Label="Build" Value="{Binding OperatingSystem.BuildNumber}" />
+                                    <c:KeyValueRow Label="Arquitectura" Value="{Binding OperatingSystem.Architecture}" />
+                                    <c:KeyValueRow Label="Idioma" Value="{Binding OperatingSystem.Locale}" />
+                                    <c:KeyValueRow Label="Equipo" Value="{Binding OperatingSystem.ComputerName}" />
+                                    <c:KeyValueRow Label="Usuario" Value="{Binding OperatingSystem.RegisteredUser}" />
+                                    <c:KeyValueRow Label="Dominio" Value="{Binding OperatingSystem.Domain}" />
+                                    <c:KeyValueRow Label="Instalación" Value="{Binding OperatingSystem.InstallDate, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" />
+                                    <c:KeyValueRow Label="Último arranque" Value="{Binding OperatingSystem.LastBootUpTime, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!--  Equipo  -->
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="DesktopMac24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Equipo" />
+                                </StackPanel>
+                                <StackPanel Visibility="{Binding ComputerSystem, Converter={StaticResource NullToVisibility}}">
+                                    <c:KeyValueRow Label="Fabricante" Value="{Binding ComputerSystem.Manufacturer}" />
+                                    <c:KeyValueRow Label="Modelo" Value="{Binding ComputerSystem.Model}" />
+                                    <c:KeyValueRow Label="Familia" Value="{Binding ComputerSystem.SystemFamily}" />
+                                    <c:KeyValueRow Label="Tipo" Value="{Binding ComputerSystem.SystemType}" />
+                                    <c:KeyValueRow Label="Nº de serie" Value="{Binding ComputerSystem.SerialNumber}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!--  BIOS / Placa base  -->
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="Board24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="BIOS / UEFI y placa" />
+                                </StackPanel>
+                                <StackPanel Visibility="{Binding Bios, Converter={StaticResource NullToVisibility}}">
+                                    <c:KeyValueRow Label="Modo arranque"
+                                                   Value="{Binding Bios.BootMode}"
+                                                   ValueForeground="{DynamicResource OkBrush}" />
+                                    <c:KeyValueRow Label="Secure Boot" Value="{Binding Bios.SecureBootEnabled}" />
+                                    <c:KeyValueRow Label="Fabricante BIOS" Value="{Binding Bios.Manufacturer}" />
+                                    <c:KeyValueRow Label="Versión BIOS" Value="{Binding Bios.SmbiosVersion}" />
+                                    <c:KeyValueRow Label="Fecha BIOS" Value="{Binding Bios.ReleaseDate, StringFormat='{}{0:dd/MM/yyyy}'}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,10,0,0" Visibility="{Binding Motherboard, Converter={StaticResource NullToVisibility}}">
+                                    <c:KeyValueRow Label="Placa fabricante" Value="{Binding Motherboard.Manufacturer}" />
+                                    <c:KeyValueRow Label="Placa producto" Value="{Binding Motherboard.Product}" />
+                                    <c:KeyValueRow Label="Placa Nº serie" Value="{Binding Motherboard.SerialNumber}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!--  Temperatura  -->
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="Temperature24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Temperatura" />
+                                </StackPanel>
+                                <TextBlock Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"
+                                           Visibility="{Binding HasNoThermal, Converter={StaticResource BoolToVisibility}}"
+                                           Text="Sensores ACPI no expuestos en este equipo. Usa HWiNFO64 u OpenHardwareMonitor para datos precisos." />
+                                <ItemsControl ItemsSource="{Binding Thermals}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type models:ThermalReading}">
+                                            <c:KeyValueRow Label="{Binding Zone}" Value="{Binding Celsius, StringFormat='{}{0} °C'}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!--  Right column  -->
+                    <StackPanel Grid.Column="2">
+
+                        <!--  CPU details  -->
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="DeveloperBoard24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Procesador" />
+                                </StackPanel>
+                                <TextBlock Visibility="{Binding CpuError, Converter={StaticResource NullToVisibility}}"
+                                           Foreground="{DynamicResource DangerBrush}"
+                                           Text="{Binding CpuError}" />
+                                <ItemsControl ItemsSource="{Binding Processors}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type models:CpuInfo}">
+                                            <StackPanel Margin="0,0,0,4">
+                                                <TextBlock Margin="0,0,0,6"
+                                                           FontFamily="{StaticResource UiFontFamily}"
+                                                           FontSize="14"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                                           Text="{Binding Name}" />
+                                                <c:KeyValueRow Label="Fabricante" Value="{Binding Manufacturer}" />
+                                                <c:KeyValueRow Label="Núcleos físicos" Value="{Binding PhysicalCores}" />
+                                                <c:KeyValueRow Label="Núcleos lógicos" Value="{Binding LogicalCores}" />
+                                                <c:KeyValueRow Label="Velocidad máx." Value="{Binding MaxClockMHz, StringFormat='{}{0} MHz'}" />
+                                                <c:KeyValueRow Label="Velocidad actual" Value="{Binding CurrentClockMHz, StringFormat='{}{0} MHz'}" />
+                                                <c:KeyValueRow Label="Socket" Value="{Binding Socket}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!--  GPU  -->
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="VideoBackgroundEffect24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Tarjetas gráficas" />
+                                </StackPanel>
+                                <TextBlock Visibility="{Binding GpuError, Converter={StaticResource NullToVisibility}}"
+                                           Foreground="{DynamicResource DangerBrush}"
+                                           Text="{Binding GpuError}" />
+                                <ItemsControl ItemsSource="{Binding Gpus}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type models:GpuInfo}">
+                                            <StackPanel Margin="0,0,0,12">
+                                                <TextBlock Margin="0,0,0,6"
+                                                           FontFamily="{StaticResource UiFontFamily}"
+                                                           FontSize="14"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                                           Text="{Binding Name}" />
+                                                <c:KeyValueRow Label="Procesador" Value="{Binding VideoProcessor}" />
+                                                <c:KeyValueRow Label="Driver" Value="{Binding DriverVersion}" />
+                                                <c:KeyValueRow Label="Fecha driver" Value="{Binding DriverDate, StringFormat='{}{0:dd/MM/yyyy}'}" />
+                                                <c:KeyValueRow Label="VRAM" Value="{Binding AdapterRamGB, StringFormat='{}{0} GB'}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!--  Memory modules  -->
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="Memory16" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Módulos de memoria" />
+                                </StackPanel>
+                                <TextBlock Visibility="{Binding MemoryError, Converter={StaticResource NullToVisibility}}"
+                                           Foreground="{DynamicResource DangerBrush}"
+                                           Text="{Binding MemoryError}" />
+                                <ItemsControl ItemsSource="{Binding MemoryModules}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type models:MemoryModule}">
+                                            <Border Margin="0,4"
+                                                    Padding="12,8"
+                                                    Background="{DynamicResource BgTertiaryBrush}"
+                                                    CornerRadius="6">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock FontFamily="{StaticResource UiFontFamily}"
+                                                                   FontSize="13"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                   Text="{Binding DeviceLocator}" />
+                                                        <TextBlock Margin="0,2,0,0"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                   FontSize="12"
+                                                                   Text="{Binding Manufacturer}" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                        <TextBlock HorizontalAlignment="Right"
+                                                                   FontFamily="{StaticResource MonoFontFamily}"
+                                                                   FontSize="14"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource AccentBrush}"
+                                                                   Text="{Binding CapacityGB, StringFormat='{}{0} GB'}" />
+                                                        <TextBlock HorizontalAlignment="Right"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                   FontFamily="{StaticResource MonoFontFamily}"
+                                                                   FontSize="11"
+                                                                   Text="{Binding SpeedMHz, StringFormat='{}{0} MHz'}" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!--  Batería  -->
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="Battery1024" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Batería" />
+                                </StackPanel>
+                                <TextBlock Visibility="{Binding BatteryError, Converter={StaticResource NullToVisibility}}"
+                                           Foreground="{DynamicResource DangerBrush}"
+                                           Text="{Binding BatteryError}" />
+                                <TextBlock Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="12"
+                                           Visibility="{Binding HasNoBattery, Converter={StaticResource BoolToVisibility}}"
+                                           Text="Este equipo no tiene batería (sobremesa o servidor)." />
+                                <ItemsControl ItemsSource="{Binding Batteries}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type models:BatteryInfo}">
+                                            <StackPanel Margin="0,0,0,8">
+                                                <c:KeyValueRow Label="Nombre" Value="{Binding Name}" />
+                                                <c:KeyValueRow Label="Carga"
+                                                               Value="{Binding EstimatedChargeRemaining, StringFormat='{}{0} %'}"
+                                                               ValueForeground="{DynamicResource OkBrush}" />
+                                                <c:KeyValueRow Label="Estado" Value="{Binding Status}" />
+                                                <c:KeyValueRow Label="Tiempo restante" Value="{Binding EstimatedRunTimeMinutes, StringFormat='{}{0} min'}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

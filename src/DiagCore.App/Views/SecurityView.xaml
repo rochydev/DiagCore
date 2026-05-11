@@ -1,0 +1,308 @@
+<UserControl x:Class="DiagCore.App.Views.SecurityView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:DiagCore.App.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:DiagCore.Core.Models;assembly=DiagCore.Core"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:DiagCore.App.ViewModels"
+             d:DataContext="{d:DesignInstance Type=vm:SecurityViewModel}"
+             mc:Ignorable="d">
+
+    <UserControl.RenderTransform>
+        <TranslateTransform X="0" />
+    </UserControl.RenderTransform>
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.2" />
+                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                     From="8"
+                                     To="0"
+                                     Duration="0:0:0.2">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </UserControl.Triggers>
+
+    <Grid Background="{DynamicResource BgPrimaryBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="24,20,24,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock FontFamily="{StaticResource DisplayFontFamily}"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           Text="Seguridad y Sistema" />
+                <TextBlock Margin="0,2,0,0"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           FontSize="13"
+                           Text="Estado de Microsoft Defender, firewall, cuentas y administradores." />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Command="{Binding RefreshCommand}"
+                    Style="{StaticResource PrimaryButtonStyle}">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon FontSize="14" VerticalAlignment="Center" Symbol="ArrowSync24" />
+                    <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" Text="Actualizar" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <ui:ProgressRing Grid.Row="1"
+                         Width="36"
+                         Height="36"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Top"
+                         Margin="0,40,0,0"
+                         IsIndeterminate="True"
+                         Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
+
+        <ScrollViewer Grid.Row="1"
+                      Padding="24,8,24,24"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto"
+                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}">
+            <StackPanel>
+
+                <UniformGrid Margin="0,0,0,16" Columns="3" Rows="1">
+                    <c:StatTile Margin="0,0,6,0"
+                                Caption="Protección en tiempo real"
+                                Icon="ShieldCheckmark24"
+                                ShowBar="False"
+                                SubCaption="{Binding DefenderRtCaption}"
+                                Value="{Binding DefenderRtValueDisplay}" />
+                    <c:StatTile Margin="6,0,6,0"
+                                Caption="Firewall"
+                                Icon="Shield24"
+                                ShowBar="False"
+                                SubCaption="{Binding FirewallCaption}"
+                                Value="{Binding FirewallValueDisplay}" />
+                    <c:StatTile Margin="6,0,0,0"
+                                Caption="Administradores"
+                                Icon="People24"
+                                ShowBar="False"
+                                SubCaption="{Binding AdminsCaption}"
+                                Value="{Binding AdminsValueDisplay}" />
+                </UniformGrid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Left: Defender + Firewall  -->
+                    <StackPanel Grid.Column="0">
+
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="ShieldCheckmark24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Microsoft Defender" />
+                                </StackPanel>
+                                <TextBlock Visibility="{Binding DefenderError, Converter={StaticResource NullToVisibility}}"
+                                           Foreground="{DynamicResource DangerBrush}"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"
+                                           Text="{Binding DefenderError}" />
+                                <StackPanel Visibility="{Binding DefenderStatus, Converter={StaticResource NullToVisibility}}">
+                                    <c:KeyValueRow Label="Antivirus" Value="{Binding DefenderStatus.AntivirusEnabled, Converter={StaticResource BoolToYesNo}}" />
+                                    <c:KeyValueRow Label="Protección tiempo real" Value="{Binding DefenderStatus.RealTimeProtectionEnabled, Converter={StaticResource BoolToYesNo}}" />
+                                    <c:KeyValueRow Label="Antispyware" Value="{Binding DefenderStatus.AntiSpywareEnabled, Converter={StaticResource BoolToYesNo}}" />
+                                    <c:KeyValueRow Label="Tamper Protection" Value="{Binding DefenderStatus.TamperProtectionEnabled, Converter={StaticResource BoolToYesNo}}" />
+                                    <c:KeyValueRow Label="Versión motor" Value="{Binding DefenderStatus.AntivirusEngineVersion}" />
+                                    <c:KeyValueRow Label="Versión firmas" Value="{Binding DefenderStatus.AntivirusSignatureVersion}" />
+                                    <c:KeyValueRow Label="Firmas actualizadas" Value="{Binding DefenderStatus.AntivirusSignatureLastUpdated, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" />
+                                    <c:KeyValueRow Label="Último escaneo rápido" Value="{Binding DefenderStatus.QuickScanEndTime, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" />
+                                    <c:KeyValueRow Label="Último escaneo completo" Value="{Binding DefenderStatus.FullScanEndTime, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="Shield24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Firewall" />
+                                </StackPanel>
+                                <TextBlock Visibility="{Binding FirewallError, Converter={StaticResource NullToVisibility}}"
+                                           Foreground="{DynamicResource DangerBrush}"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"
+                                           Text="{Binding FirewallError}" />
+                                <ItemsControl ItemsSource="{Binding FirewallProfiles}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type models:FirewallProfile}">
+                                            <Border Margin="0,4"
+                                                    Padding="12,8"
+                                                    Background="{DynamicResource BgTertiaryBrush}"
+                                                    CornerRadius="6">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock FontSize="13"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                   Text="{Binding Name}" />
+                                                        <TextBlock Margin="0,2,0,0"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                   FontSize="11">
+                                                            <Run Text="Inbound: " />
+                                                            <Run Text="{Binding DefaultInboundAction}" />
+                                                            <Run Text=" · Outbound: " />
+                                                            <Run Text="{Binding DefaultOutboundAction}" />
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="1"
+                                                               VerticalAlignment="Center"
+                                                               FontSize="11"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource OkBrush}"
+                                                               Text="ACTIVO"
+                                                               Visibility="{Binding Enabled, Converter={StaticResource BoolToVisibility}}" />
+                                                    <TextBlock Grid.Column="1"
+                                                               VerticalAlignment="Center"
+                                                               FontSize="11"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource DangerBrush}"
+                                                               Text="DESACTIVADO"
+                                                               Visibility="{Binding Enabled, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!--  Right: Usuarios + Administradores  -->
+                    <StackPanel Grid.Column="2">
+
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="People24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Administradores locales" />
+                                </StackPanel>
+                                <TextBlock Visibility="{Binding AdminError, Converter={StaticResource NullToVisibility}}"
+                                           Foreground="{DynamicResource DangerBrush}"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"
+                                           Text="{Binding AdminError}" />
+                                <ItemsControl ItemsSource="{Binding Administrators}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type models:AdminGroupMember}">
+                                            <Grid Margin="0,3">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0"
+                                                           VerticalAlignment="Center"
+                                                           FontSize="13"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}">
+                                                    <Run Foreground="{DynamicResource TextMutedBrush}" Text="{Binding Domain, Mode=OneWay}" />
+                                                    <Run Foreground="{DynamicResource TextMutedBrush}" Text="\" />
+                                                    <Run Text="{Binding Name, Mode=OneWay}" />
+                                                </TextBlock>
+                                                <TextBlock Grid.Column="1"
+                                                           VerticalAlignment="Center"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="{Binding AccountType}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="Person24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Usuarios locales" />
+                                </StackPanel>
+                                <TextBlock Visibility="{Binding UserError, Converter={StaticResource NullToVisibility}}"
+                                           Foreground="{DynamicResource DangerBrush}"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"
+                                           Text="{Binding UserError}" />
+                                <ItemsControl ItemsSource="{Binding LocalUsers}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type models:LocalUser}">
+                                            <Border Margin="0,3"
+                                                    Padding="10,6"
+                                                    Background="{DynamicResource BgTertiaryBrush}"
+                                                    CornerRadius="6">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock FontSize="13"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                   Text="{Binding Name}" />
+                                                        <TextBlock Margin="0,1,0,0"
+                                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                                   FontSize="11"
+                                                                   Text="{Binding Description}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   Visibility="{Binding Description, Converter={StaticResource NullToVisibility}}" />
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="1"
+                                                               VerticalAlignment="Center"
+                                                               FontSize="11"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource DangerBrush}"
+                                                               Text="DESHABILITADO"
+                                                               Visibility="{Binding Disabled, Converter={StaticResource BoolToVisibility}}" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

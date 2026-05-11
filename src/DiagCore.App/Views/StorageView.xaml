@@ -1,0 +1,316 @@
+<UserControl x:Class="DiagCore.App.Views.StorageView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:DiagCore.App.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:DiagCore.Core.Models;assembly=DiagCore.Core"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:DiagCore.App.ViewModels"
+             d:DataContext="{d:DesignInstance Type=vm:StorageViewModel}"
+             mc:Ignorable="d">
+
+    <UserControl.RenderTransform>
+        <TranslateTransform X="0" />
+    </UserControl.RenderTransform>
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.2" />
+                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                     From="8"
+                                     To="0"
+                                     Duration="0:0:0.2">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </UserControl.Triggers>
+
+    <Grid Background="{DynamicResource BgPrimaryBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="24,20,24,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock FontFamily="{StaticResource DisplayFontFamily}"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           Text="Almacenamiento" />
+                <TextBlock Margin="0,2,0,0"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           FontSize="13"
+                           Text="Volúmenes lógicos, discos físicos con SMART y particiones." />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Command="{Binding RefreshCommand}"
+                    Style="{StaticResource PrimaryButtonStyle}">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon FontSize="14" VerticalAlignment="Center" Symbol="ArrowSync24" />
+                    <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" Text="Actualizar" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <ui:ProgressRing Grid.Row="1"
+                         Width="36"
+                         Height="36"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Top"
+                         Margin="0,40,0,0"
+                         IsIndeterminate="True"
+                         Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
+
+        <ScrollViewer Grid.Row="1"
+                      Padding="24,8,24,24"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto"
+                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}">
+            <StackPanel>
+
+                <!--  Hero tiles  -->
+                <UniformGrid Margin="0,0,0,16" Columns="3" Rows="1">
+                    <c:StatTile Margin="0,0,6,0"
+                                Caption="Unidad del sistema"
+                                Icon="Database24"
+                                Percent="{Binding SystemDriveUsedPercent}"
+                                ShowBar="True"
+                                SubCaption="{Binding SystemDriveCaption}"
+                                Value="{Binding SystemDriveValueDisplay}" />
+                    <c:StatTile Margin="6,0,6,0"
+                                Caption="Discos físicos"
+                                Icon="Server24"
+                                ShowBar="False"
+                                SubCaption="{Binding PhysicalDisksCaption}"
+                                Value="{Binding PhysicalDisksValueDisplay}" />
+                    <c:StatTile Margin="6,0,0,0"
+                                Caption="Volúmenes"
+                                Icon="Library24"
+                                ShowBar="False"
+                                SubCaption="{Binding VolumesCaption}"
+                                Value="{Binding VolumesValueDisplay}" />
+                </UniformGrid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Left: Volúmenes  -->
+                    <StackPanel Grid.Column="0">
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="Database24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Volúmenes" />
+                                </StackPanel>
+                                <TextBlock Visibility="{Binding VolumeError, Converter={StaticResource NullToVisibility}}"
+                                           Foreground="{DynamicResource DangerBrush}"
+                                           Text="{Binding VolumeError}" />
+                                <ItemsControl ItemsSource="{Binding Volumes}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type models:VolumeInfo}">
+                                            <Border Margin="0,6"
+                                                    Padding="12,10"
+                                                    Background="{DynamicResource BgTertiaryBrush}"
+                                                    CornerRadius="8">
+                                                <StackPanel>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                            <TextBlock FontFamily="{StaticResource MonoFontFamily}"
+                                                                       FontSize="16"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="{DynamicResource AccentBrush}"
+                                                                       Text="{Binding DeviceId}" />
+                                                            <TextBlock Margin="10,0,0,0"
+                                                                       VerticalAlignment="Center"
+                                                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                       FontSize="13"
+                                                                       Text="{Binding Label}" />
+                                                            <TextBlock Margin="10,0,0,0"
+                                                                       VerticalAlignment="Center"
+                                                                       Foreground="{DynamicResource TextMutedBrush}"
+                                                                       FontSize="11"
+                                                                       Text="{Binding FileSystem}" />
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="1"
+                                                                   FontFamily="{StaticResource MonoFontFamily}"
+                                                                   FontSize="13"
+                                                                   Foreground="{DynamicResource TextPrimaryBrush}">
+                                                            <Run Text="{Binding UsedGB, StringFormat='{}{0:F0}'}" />
+                                                            <Run Foreground="{DynamicResource TextMutedBrush}" Text=" / " />
+                                                            <Run Text="{Binding TotalGB, StringFormat='{}{0:F0}'}" />
+                                                            <Run Foreground="{DynamicResource TextMutedBrush}" Text=" GB" />
+                                                        </TextBlock>
+                                                    </Grid>
+
+                                                    <!--  Usage bar  -->
+                                                    <Grid Height="6" Margin="0,10,0,0">
+                                                        <Border Background="{DynamicResource BgPrimaryBrush}" CornerRadius="3" />
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="{Binding UsedPercent, Converter={StaticResource PercentToStar}}" />
+                                                                <ColumnDefinition Width="{Binding UsedPercent, Converter={StaticResource PercentToStar}, ConverterParameter=Remaining}" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <Border Grid.Column="0"
+                                                                    Background="{Binding UsedPercent, Converter={StaticResource PercentToBrush}}"
+                                                                    CornerRadius="3" />
+                                                        </Grid>
+                                                    </Grid>
+
+                                                    <Grid Margin="0,6,0,0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0"
+                                                                   FontSize="11"
+                                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                                   Text="{Binding FreeGB, StringFormat='{}{0:F0} GB libres'}" />
+                                                        <TextBlock Grid.Column="1"
+                                                                   FontFamily="{StaticResource MonoFontFamily}"
+                                                                   FontSize="11"
+                                                                   Foreground="{Binding UsedPercent, Converter={StaticResource PercentToBrush}}"
+                                                                   Text="{Binding UsedPercent, StringFormat='{}{0:F0} %'}" />
+                                                    </Grid>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!--  Right: Discos físicos + particiones  -->
+                    <StackPanel Grid.Column="2">
+
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="Server24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Discos físicos" />
+                                </StackPanel>
+                                <TextBlock Visibility="{Binding PhysicalDiskError, Converter={StaticResource NullToVisibility}}"
+                                           Foreground="{DynamicResource DangerBrush}"
+                                           Text="{Binding PhysicalDiskError}" />
+                                <ItemsControl ItemsSource="{Binding PhysicalDisks}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type models:PhysicalDiskInfo}">
+                                            <Border Margin="0,4"
+                                                    Padding="12,10"
+                                                    Background="{DynamicResource BgTertiaryBrush}"
+                                                    CornerRadius="8">
+                                                <StackPanel>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0">
+                                                            <TextBlock FontFamily="{StaticResource UiFontFamily}"
+                                                                       FontSize="13"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                       Text="{Binding FriendlyName}" />
+                                                            <TextBlock Margin="0,2,0,0"
+                                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                       FontSize="11">
+                                                                <Run Text="{Binding MediaType}" />
+                                                                <Run Text=" · " />
+                                                                <Run Text="{Binding BusType}" />
+                                                                <Run Text=" · " />
+                                                                <Run Text="{Binding SizeGB, StringFormat='{}{0:F0} GB'}" />
+                                                            </TextBlock>
+                                                        </StackPanel>
+                                                        <c:StatusBadge Grid.Column="1"
+                                                                       Text="{Binding HealthStatus, Converter={StaticResource DiskHealthToText}}"
+                                                                       Variant="{Binding HealthStatus, Converter={StaticResource DiskHealthToVariant}}" />
+                                                    </Grid>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Margin="0,0,0,12" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <ui:SymbolIcon VerticalAlignment="Center"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Symbol="Layer24" />
+                                    <TextBlock Margin="8,0,0,0" Style="{StaticResource CardTitleStyle}" Text="Particiones" />
+                                </StackPanel>
+                                <TextBlock Visibility="{Binding PartitionError, Converter={StaticResource NullToVisibility}}"
+                                           Foreground="{DynamicResource DangerBrush}"
+                                           Text="{Binding PartitionError}" />
+                                <ItemsControl ItemsSource="{Binding Partitions}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type models:PartitionInfo}">
+                                            <Grid Margin="0,3">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="50" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0"
+                                                           FontFamily="{StaticResource MonoFontFamily}"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource AccentBrush}">
+                                                    <Run Text="D" />
+                                                    <Run Text="{Binding DiskNumber}" />
+                                                    <Run Foreground="{DynamicResource TextMutedBrush}" Text="·" />
+                                                    <Run Text="{Binding PartitionNumber}" />
+                                                </TextBlock>
+                                                <TextBlock Grid.Column="1"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                                           FontSize="12">
+                                                    <Run Text="{Binding DriveLetter}" />
+                                                    <Run Foreground="{DynamicResource TextMutedBrush}" Text="  " />
+                                                    <Run Text="{Binding PartitionType}" />
+                                                </TextBlock>
+                                                <TextBlock Grid.Column="2"
+                                                           FontFamily="{StaticResource MonoFontFamily}"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="{Binding SizeGB, StringFormat='{}{0:F1} GB'}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

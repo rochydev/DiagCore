@@ -1,6 +1,6 @@
 # DiagCore — Plan de Proyecto
 
-> **Documento maestro para desarrollo asistido con Claude Code.**
+> **Documento maestro del proyecto.**
 > Contiene contexto, arquitectura, stack, fases y especificaciones de UI.
 > Léelo entero antes de empezar a escribir código.
 
@@ -28,8 +28,8 @@
 
 | Capa | Tecnología | Motivo |
 |------|------------|--------|
-| **Lenguaje** | C# 12 | Madurez, Windows nativo, gran ecosistema |
-| **Framework UI** | WPF (.NET 8) | Control total sobre estilos, animaciones potentes |
+| **Lenguaje** | C# 14 | Madurez, Windows nativo, gran ecosistema |
+| **Framework UI** | WPF (.NET 10) | Control total sobre estilos, animaciones potentes |
 | **Componentes UI** | [WPF-UI](https://github.com/lepoco/wpfui) | Componentes Fluent modernos, mantenido, gratuito |
 | **Iconos** | [Lucide.Wpf](https://github.com/khalidabuhakmeh/Lucide.Avalonia) o WPF-UI SymbolIcon | Iconografía minimalista coherente |
 | **Gráficos** | [LiveCharts2](https://livecharts.dev/) | Animaciones suaves, gauges, donuts, líneas |
@@ -43,7 +43,7 @@
 | **Build/CI** | GitHub Actions | Build, test y release automáticos |
 | **Instalador** | Velopack genera `.exe` y `Setup.exe` | Una sola fuente |
 
-**Versión .NET objetivo:** .NET 8 (LTS hasta noviembre 2026).
+**Versión .NET objetivo:** .NET 10 (LTS hasta noviembre 2028).
 **Plataforma objetivo:** Windows 10 1809+ y Windows 11. Windows Server 2019/2022/2025.
 **Arquitectura binaria:** x64 (única, no se publica x86 ni ARM en MVP).
 
@@ -106,21 +106,24 @@
 
 ### Layout principal
 
-Estructura inspirada en la captura de referencia (RedEngine), pero con la paleta y feel anteriores:
+Estructura inspirada en la captura de referencia (RedEngine):
+navegación únicamente por **sidebar de iconos** a la izquierda, sin tabs en el
+topbar. El title bar custom solo lleva la marca (logo + título) y los controles
+de ventana.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  [Tab1]  [Tab2]  [Tab3]  [Tab4]  [Tab5]  [Tab6]   ⚙️ Config │ ← TopBar (52px)
+│  [Logo] DiagCore                              [_] [▢] [×]    │ ← TitleBar (52px)
 ├─────┬────────────────────────────────────────────────────────┤
 │     │                                                        │
 │ 🏠  │                                                        │
 │ 🖥️  │              ÁREA DE CONTENIDO                         │
-│ 💾  │              (cambia según tab)                        │
+│ 💾  │              (cambia según sección)                    │
 │ 🌐  │                                                        │
 │ 🛡️  │                                                        │
 │ 📄  │                                                        │
 │     │                                                        │
-│ ⚙️  │                                                        │
+│ ⚙️  │ ← Settings (anclado al pie del sidebar)                │
 ├─────┴────────────────────────────────────────────────────────┤
 │  v1.0.0  •  DiagCore  •  developed by RochyDev    [Estado]   │ ← StatusBar (28px)
 └──────────────────────────────────────────────────────────────┘
@@ -129,11 +132,13 @@ Estructura inspirada en la captura de referencia (RedEngine), pero con la paleta
  (60px)
 ```
 
-**Sidebar:** solo iconos, tooltip al hacer hover. Ítem activo con barra azul vertical de 3px a la izquierda y fondo `--bg-tertiary`.
+**Sidebar:** solo iconos, tooltip al hacer hover. Ítem activo con barra azul
+vertical de 3px a la izquierda y fondo `--bg-tertiary`. El icono de
+Configuración va anclado al pie.
 
-**TopBar:** tabs estilo "pill" como en la captura de referencia, sin subrayado clásico. Tab activa con fondo `--bg-tertiary` y borde inferior azul de 2px.
-
-**Ventana:** sin chrome de Windows estándar. Implementar **custom title bar** con botones minimizar/maximizar/cerrar al estilo Windows 11 (animación de hover sutil, rojo solo en cerrar al pasar por encima).
+**Ventana:** sin chrome de Windows estándar. Implementar **custom title bar**
+con botones minimizar/maximizar/cerrar al estilo Windows 11 (animación de hover
+sutil, rojo solo en cerrar al pasar por encima).
 
 ---
 
@@ -370,9 +375,9 @@ if (newVersion != null) {
 
 ---
 
-## 📅 Fases de desarrollo (ruta sugerida para Claude Code)
+## 📅 Fases de desarrollo
 
-Cada fase debe quedar **funcional y commiteable** antes de pasar a la siguiente. Claude Code debe parar al final de cada fase, hacer commit, y pedir confirmación humana.
+Cada fase debe quedar **funcional y commiteable** antes de pasar a la siguiente. Se hace commit al final de cada fase, con verificación humana antes de avanzar.
 
 ### Fase 0 — Andamiaje (1-2 sesiones)
 
@@ -458,7 +463,7 @@ Una sesión por tab aproximadamente:
 
 ---
 
-## ⚠️ Consideraciones importantes para Claude Code
+## ⚠️ Consideraciones importantes de implementación
 
 ### Privilegios
 
@@ -518,39 +523,29 @@ Para SFC, DISM, chkdsk, ipconfig, etc.: usar `Process.Start` con redirección de
 
 ---
 
-## 💡 Indicaciones para Claude Code (cómo usarlo)
+## 💡 Cómo usar este documento
 
-Cuando le pases este plan a Claude Code:
+Este plan está pensado como **referencia maestra** durante el desarrollo:
 
-1. **Pásale el documento completo** como contexto inicial (no por trozos).
-2. **Pídele que vaya por fases**, no toda la app de golpe. Frase recomendada:
-   > "Vamos a empezar por la **Fase 0**. Crea la solución y los proyectos según la estructura del plan. Cuando termines la Fase 0, para y muéstrame el resultado para confirmar antes de seguir."
-3. **Revisa cada fase antes de aprobar la siguiente.** Compila, abre la app, navega.
-4. **No le dejes inventar estética**: si algún detalle visual no está en este plan, que pregunte.
-5. **Commits pequeños**: que haga un commit por cada feature significativa, no uno gigante por fase.
-6. **Tests desde el día 1**: en la Fase 2 ya debe haber tests unitarios de los servicios.
-
-### Prompt de arranque sugerido para Claude Code
-
-```
-Lee el archivo PLAN.md completo. Es el plan maestro del proyecto DiagCore.
-
-Vamos a empezar con la Fase 0 — Andamiaje. Crea la estructura de la
-solución exactamente como se describe en la sección "Estructura de
-solución". Usa los paquetes NuGet de la versión más reciente estable
-compatible con .NET 8.
-
-Cuando termines:
-- Verifica que la solución compila (dotnet build).
-- Muéstrame la estructura de carpetas final.
-- Para y espera mi confirmación antes de pasar a la Fase 1.
-```
+1. **Lee el documento entero antes de tocar código.** Ahorra rehacer
+   decisiones que ya están tomadas (stack, estética, fases).
+2. **Avanza por fases, no toda la app de golpe.** Cada fase tiene un
+   criterio de hecho explícito al final.
+3. **Revisa cada fase antes de aprobar la siguiente.** Compila, abre la
+   app, navega, ejecuta tests.
+4. **Estética**: si algún detalle visual no está en este plan,
+   discútelo antes de implementarlo.
+5. **Commits pequeños y descriptivos**: uno por feature o cambio
+   lógico, no uno gigante por fase. Mensajes en formato convencional
+   (`feat:`, `fix:`, `chore:`, `docs:`, etc.).
+6. **Tests desde el día 1**: a partir de la Fase 2, todo servicio de
+   `Core` lleva tests unitarios.
 
 ---
 
 ## 🗓️ Estimación temporal realista
 
-Asumiendo desarrollo asistido por Claude Code y sesiones de 2-3 horas:
+Trabajando en sesiones de 2-3 horas:
 
 | Fase | Sesiones | Horas |
 |------|----------|-------|
@@ -567,11 +562,11 @@ Si trabajas 5-6 horas a la semana, **MVP listo en ~10 semanas**. Razonable.
 
 ---
 
-## 📝 Resumen ejecutivo (para repegar a Claude Code rápido)
+## 📝 Resumen ejecutivo
 
 **Producto:** DiagCore — app Windows de diagnóstico técnico para sysadmins. Gratuita, open source, todo local, sin login.
 
-**Stack:** C# 12, WPF, .NET 8, WPF-UI, LiveCharts2, QuestPDF, SQLite + EF Core, Velopack para auto-update, GitHub Actions para CI/CD.
+**Stack:** C# 14, WPF, .NET 10, WPF-UI, LiveCharts2, QuestPDF, SQLite + EF Core, Velopack para auto-update, GitHub Actions para CI/CD.
 
 **Estética:** oscura con acento azul, layout sidebar + topbar + content + statusbar, animaciones suaves, custom title bar Windows 11.
 
