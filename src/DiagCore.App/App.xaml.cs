@@ -91,9 +91,9 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Shows the welcome window on top of the main window when:
-    ///  - the user has not opted out via "no volver a mostrar al iniciar", AND
-    ///  - the most recent changelog version has not been acknowledged yet.
+    /// Shows the welcome window on top of the main window on every startup,
+    /// unless the user has explicitly opted out via the
+    /// "no volver a mostrar al iniciar" checkbox.
     /// </summary>
     private void TryShowWelcome()
     {
@@ -102,11 +102,7 @@ public partial class App : Application
         var prefs = _host.Services.GetRequiredService<IPreferencesService>().Current;
         if (prefs.SuppressWelcomeOnStartup) return;
 
-        var latestVersion = ChangelogData.Entries.FirstOrDefault()?.Version;
-        if (latestVersion is null) return;
-        if (string.Equals(prefs.LastWelcomeVersionShown, latestVersion, StringComparison.Ordinal)) return;
-
-        Log.Information("Showing welcome window for version {Version}.", latestVersion);
+        Log.Information("Showing welcome window on startup.");
         var welcome = _host.Services.GetRequiredService<WelcomeWindow>();
         welcome.Owner = MainWindow;
         welcome.ShowDialog();

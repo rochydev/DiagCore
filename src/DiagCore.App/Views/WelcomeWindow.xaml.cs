@@ -14,24 +14,12 @@ public partial class WelcomeWindow : FluentWindow
 
     private void OnContinueClick(object sender, RoutedEventArgs e)
     {
-        if (DataContext is WelcomeViewModel vm)
-        {
-            vm.AcknowledgeCurrentVersion();
-        }
         DialogResult = true;
         Close();
     }
 
-    /// <summary>
-    /// Treat the close button the same as "Empezar" - acknowledges the
-    /// version so the welcome won't reappear on the next startup.
-    /// </summary>
     private void OnCloseClick(object sender, RoutedEventArgs e)
     {
-        if (DataContext is WelcomeViewModel vm)
-        {
-            vm.AcknowledgeCurrentVersion();
-        }
         DialogResult = true;
         Close();
     }

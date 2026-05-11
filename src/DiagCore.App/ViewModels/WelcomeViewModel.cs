@@ -48,16 +48,6 @@ public sealed partial class WelcomeViewModel : ObservableObject
         _preferences.Save();
     }
 
-    /// <summary>
-    /// Marks the latest changelog entry as acknowledged so the welcome won't
-    /// auto-open again until a new version lands.
-    /// </summary>
-    public void AcknowledgeCurrentVersion()
-    {
-        _preferences.Current.LastWelcomeVersionShown = LatestVersion;
-        _preferences.Save();
-    }
-
     [RelayCommand]
     private void OpenRepository() => OpenUrl(RepositoryUrl);
 
