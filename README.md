@@ -152,6 +152,52 @@ servicios de diagnóstico. Deben pasar todos.
 
 ---
 
+## 📦 Generar un .exe portable
+
+Si quieres llevarte DiagCore a otro equipo sin instalar nada (ni
+siquiera el runtime de .NET), genera un **single-file
+self-contained**:
+
+```powershell
+pwsh scripts/publish.ps1
+```
+
+El resultado aparece en `publish/DiagCore.exe` (~64 MB) y se puede
+copiar a cualquier Windows x64. No requiere .NET 10 instalado en el
+destino — todo va dentro del binario.
+
+Si prefieres hacerlo a mano:
+
+```powershell
+dotnet publish src/DiagCore.App/DiagCore.App.csproj `
+    -c Release `
+    -r win-x64 `
+    --self-contained true `
+    -p:PublishSingleFile=true `
+    -p:IncludeNativeLibrariesForSelfExtract=true `
+    -p:EnableCompressionInSingleFile=true `
+    -p:DebugType=embedded `
+    -o publish
+```
+
+### Avisos al ejecutar en otra máquina
+
+- **Smartscreen** mostrará un aviso "Windows ha protegido tu equipo"
+  la primera vez. Es normal: el binario no está firmado todavía.
+  Pulsa **"Más info" → "Ejecutar de todas formas"**. La firma con
+  certificado de code-signing llega en la Fase 5 del roadmap.
+- **Antivirus** pueden marcar la app la primera vez por la misma
+  razón (heurística de binarios sin firmar que ejecutan WMI).
+  Cuando esté firmada, este aviso desaparece.
+
+### Otras arquitecturas
+
+```powershell
+pwsh scripts/publish.ps1 -RuntimeIdentifier win-arm64
+```
+
+---
+
 ## 📁 Estructura del repositorio
 
 ```
